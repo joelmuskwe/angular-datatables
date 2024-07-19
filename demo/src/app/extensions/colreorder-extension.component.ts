@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { ADTSettings } from 'angular-datatables';
-import 'datatables.net-colreorder';
 
 @Component({
   selector: 'app-colreorder-extension',

@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import 'datatables.net-fixedcolumns-dt';
 import { ADTSettings } from "angular-datatables";
 
 @Component({

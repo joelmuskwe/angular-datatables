@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { Config } from 'datatables.net';
 import { ADTSettings } from "angular-datatables";
 
 @Component({

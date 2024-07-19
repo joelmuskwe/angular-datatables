@@ -1,8 +1,6 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
 
 import { ADTSettings, DataTableDirective } from "angular-datatables";
-import { Config } from "datatables.net";
-import { filter, take } from "rxjs";
 
 @Component({
   selector: "app-dt-instance",

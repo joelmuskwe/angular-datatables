@@ -2,7 +2,6 @@ import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 
 import { ADTSettings, DataTableDirective } from "angular-datatables";
 import { Config } from "datatables.net";
-import { filter, take } from "rxjs";
 
 // Example from https://datatables.net/examples/plug-ins/range_filtering.html
 @Component({
