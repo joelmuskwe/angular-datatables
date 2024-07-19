@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Config } from 'datatables.net-dt';
+import { ADTSettings } from 'angular-datatables';
 import 'datatables.net-buttons-dt';
 
 @Component({
@@ -16,7 +16,7 @@ export class ButtonsExtensionComponent implements OnInit {
   mdTS = 'assets/docs/extensions/buttons/source-ts.md';
   mdTSV1 = 'assets/docs/extensions/buttons/source-ts-dtv1.md';
 
-  dtOptions: Config = {};
+  dtOptions: ADTSettings = {};
 
   ngOnInit(): void {
     this.dtOptions = {

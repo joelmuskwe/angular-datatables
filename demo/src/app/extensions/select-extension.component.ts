@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Config } from 'datatables.net';
-import 'datatables.net-select';
+import { ADTSettings } from 'angular-datatables';
 
 @Component({
   selector: 'app-select-extension',
@@ -16,7 +15,7 @@ export class SelectExtensionComponent implements OnInit {
   mdTS = 'assets/docs/extensions/select/source-ts.md';
   mdTSV1 = 'assets/docs/extensions/select/source-ts-dtv1.md';
 
-  dtOptions: Config = {};
+  dtOptions: ADTSettings = {};
 
   ngOnInit(): void {
     this.dtOptions = {

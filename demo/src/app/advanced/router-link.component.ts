@@ -9,7 +9,7 @@ import { ADTSettings } from 'angular-datatables/src/models/settings';
   selector: 'app-router-link',
   templateUrl: 'router-link.component.html'
 })
-export class RouterLinkComponent implements AfterViewInit, OnInit, OnDestroy {
+export class RouterLinkComponent implements OnInit {
 
   pageTitle = 'Router Link';
   mdIntro = 'assets/docs/advanced/router-link/intro.md';
@@ -19,18 +19,14 @@ export class RouterLinkComponent implements AfterViewInit, OnInit, OnDestroy {
   mdTSHeading = 'TypeScript';
 
   dtOptions: ADTSettings = {};
-  dtTrigger = new Subject<ADTSettings>();
 
-  @ViewChild('demoNg') demoNg!: TemplateRef<DemoNgComponent>;
+  @ViewChild('demoNg', { static: true }) demoNg!: TemplateRef<DemoNgComponent>;
 
   constructor(
     private router: Router
   ) { }
 
   ngOnInit(): void {
-  }
-
-  ngAfterViewInit() {
     const self = this;
     // init here as we use ViewChild ref
     this.dtOptions = {
@@ -48,6 +44,7 @@ export class RouterLinkComponent implements AfterViewInit, OnInit, OnDestroy {
         },
         {
           title: 'Action',
+          data: null,
           defaultContent: '',
           ngTemplateRef: {
             ref: this.demoNg,
@@ -59,18 +56,9 @@ export class RouterLinkComponent implements AfterViewInit, OnInit, OnDestroy {
         }
       ]
     };
-
-    // race condition fails unit tests if dtOptions isn't sent with dtTrigger
-    setTimeout(() => {
-      this.dtTrigger.next(this.dtOptions);
-    }, 200);
   }
 
   onCaptureEvent(event: IDemoNgComponentEventType) {
     this.router.navigate(["/person/" + event.data.id]);
-  }
-
-  ngOnDestroy(): void {
-    this.dtTrigger?.unsubscribe();
   }
 }

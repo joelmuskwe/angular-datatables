@@ -1,26 +1,21 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Subject } from 'rxjs';
+import { Component, OnInit } from '@angular/core';
+import { ADTSettings } from 'angular-datatables';
 import { Person } from '../person';
-import { Config } from 'datatables.net';
 
 @Component({
   selector: 'app-angular-way',
   templateUrl: 'angular-way.component.html'
 })
-export class AngularWayComponent implements OnDestroy, OnInit {
+export class AngularWayComponent implements OnInit {
 
   pageTitle = 'Angular way';
   mdIntro = 'assets/docs/basic/angular-way/intro.md';
   mdHTML = 'assets/docs/basic/angular-way/source-html.md';
   mdTSV1 = 'assets/docs/basic/angular-way/source-ts.md';
 
-  dtOptions: Config = {};
+  dtOptions: ADTSettings = {};
   persons: Person[] = [];
-
-  // We use this trigger because fetching the list of persons can be quite long,
-  // thus we ensure the data is fetched before rendering
-  dtTrigger: Subject<any> = new Subject<any>();
 
   constructor(private httpClient: HttpClient) { }
 
@@ -32,13 +27,6 @@ export class AngularWayComponent implements OnDestroy, OnInit {
     this.httpClient.get<Person[]>('data/data.json')
       .subscribe(data => {
         this.persons = (data as any).data;
-        // Calling the DT trigger to manually render the table
-        this.dtTrigger.next(null);
       });
-  }
-
-  ngOnDestroy(): void {
-    // Do not forget to unsubscribe the event
-    this.dtTrigger.unsubscribe();
   }
 }

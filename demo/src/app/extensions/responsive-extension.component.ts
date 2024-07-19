@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Config } from 'datatables.net-dt';
+import { ADTSettings } from 'angular-datatables';
 import 'datatables.net-responsive';
 
 @Component({
@@ -15,7 +15,7 @@ export class ResponsiveExtensionComponent implements OnInit {
   mdTS = 'assets/docs/extensions/responsive/source-ts.md';
   mdTSV1 = 'assets/docs/extensions/responsive/source-ts-dtv1.md';
 
-  dtOptions: Config = {};
+  dtOptions: ADTSettings = {};
 
   ngOnInit(): void {
     this.dtOptions = {

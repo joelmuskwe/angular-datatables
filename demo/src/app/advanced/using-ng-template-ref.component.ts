@@ -1,14 +1,13 @@
-import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { ADTSettings } from 'angular-datatables';
 import { IDemoNgComponentEventType } from './demo-ng-template-ref-event-type';
 import { DemoNgComponent } from './demo-ng-template-ref.component';
-import { ADTSettings } from 'angular-datatables/src/models/settings';
 
 @Component({
   selector: 'app-using-ng-template-ref',
   templateUrl: './using-ng-template-ref.component.html',
 })
-export class UsingNgTemplateRefComponent implements OnInit, AfterViewInit {
+export class UsingNgTemplateRefComponent implements OnInit {
 
   constructor() { }
 
@@ -18,14 +17,11 @@ export class UsingNgTemplateRefComponent implements OnInit, AfterViewInit {
   mdTS = 'assets/docs/advanced/using-ng-template-ref/source-ts.md';
 
   dtOptions: ADTSettings = {};
-  dtTrigger: Subject<ADTSettings> = new Subject<ADTSettings>();
 
-  @ViewChild('demoNg') demoNg!: TemplateRef<DemoNgComponent>;
+  @ViewChild('demoNg', { static: true }) demoNg!: TemplateRef<DemoNgComponent>;
   message = '';
 
   ngOnInit(): void {
-    // use setTimeout as a hack to ensure the `demoNg` is usable in the datatables rowCallback function
-    setTimeout(() => {
       const self = this;
       this.dtOptions = {
         ajax: 'data/data.json',
@@ -56,22 +52,9 @@ export class UsingNgTemplateRefComponent implements OnInit, AfterViewInit {
           }
         ]
       };
-    });
-  }
-
-  ngAfterViewInit() {
-    setTimeout(() => {
-      // race condition fails unit tests if dtOptions isn't sent with dtTrigger
-      this.dtTrigger.next(this.dtOptions);
-    }, 200);
   }
 
   onCaptureEvent(event: IDemoNgComponentEventType) {
     this.message = `Event '${event.cmd}' with data '${JSON.stringify(event.data)}`;
-  }
-
-  ngOnDestroy(): void {
-    // Do not forget to unsubscribe the event
-    this.dtTrigger.unsubscribe();
   }
 }

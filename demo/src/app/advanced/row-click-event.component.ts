@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Config } from 'datatables.net';
+import { ADTSettings } from "angular-datatables";
 
 @Component({
   selector: 'app-row-click-event',
@@ -14,7 +15,7 @@ export class RowClickEventComponent implements OnInit {
   mdTSV1 = 'assets/docs/advanced/row-click/source-ts-dtv1.md';
 
   message = '';
-  dtOptions: Config = {};
+  dtOptions: ADTSettings = {};
 
   constructor() { }
 

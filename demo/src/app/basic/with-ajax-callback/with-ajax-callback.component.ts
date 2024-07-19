@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { Config } from 'datatables.net';
+import { ADTSettings } from 'angular-datatables';
 import { DataTablesResponse } from '../../datatables-response.model';
 
 @Component({
@@ -19,7 +19,7 @@ export class WithAjaxCallbackComponent implements OnInit {
   mdTS = 'assets/docs/basic/with-ajax-callback/source-ts.md';
   mdTSV1 = 'assets/docs/basic/with-ajax-callback/source-ts-dtv1.md';
 
-  dtOptions: Config = {};
+  dtOptions: ADTSettings = {};
 
   ngOnInit(): void {
     const that = this;
