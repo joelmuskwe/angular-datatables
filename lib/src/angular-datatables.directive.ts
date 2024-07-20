@@ -10,10 +10,8 @@ import {
   SimpleChanges,
   ViewContainerRef,
 } from "@angular/core";
-import { Subject, BehaviorSubject } from "rxjs";
-import { ADTSettings, ADTColumns } from "./models/settings";
 import { Api } from "datatables.net";
-import { take } from "rxjs/operators";
+import { ADTColumns, ADTSettings } from "./models/settings";
 
 @Directive({
   selector: "[datatable]",
@@ -36,7 +34,7 @@ export class DataTableDirective<T extends object>
       },
     ],
   };
-  private _instance?: any;
+  private _instance?: Api<any>;
 
   ngOnChanges(changes: SimpleChanges): void {
     const { dtOptions, data } = changes;
@@ -46,30 +44,24 @@ export class DataTableDirective<T extends object>
       return;
     }
 
-    if (data && data.currentValue) {
+    if (data?.currentValue) {
       this._dtOptions = {
         ...this._dtOptions,
         ...this.dtOptions,
         data: data.currentValue,
       };
-      if ($.fn.DataTable.isDataTable($(this.el.nativeElement))) {
-        this.displayTable(true);
-      } else {
-        this.displayTable();
-      }
-    } else if (dtOptions && dtOptions.firstChange) {
+      this.displayTable($.fn.DataTable.isDataTable($(this.el.nativeElement)));
+    } else if (dtOptions) {
       this._dtOptions = {
         ...this._dtOptions,
         ...this.dtOptions,
       };
-      this.displayTable();
-    } else if (dtOptions && !dtOptions.firstChange) {
-      this.displayTable(true);
+      this.displayTable(!dtOptions.firstChange);
     }
   }
 
   ngOnInit(): void {
-    if (Object.keys(this.dtOptions).length === 0 && this.data === null) {
+    if (!Object.keys(this.dtOptions).length && !this.data) {
       this.displayTable();
     }
   }
@@ -93,36 +85,18 @@ export class DataTableDirective<T extends object>
     }
   };
 
-  rerender = (): void => {
-    this.displayTable(true);
-  };
-
   private displayTable(destroy = false): void {
     const tableElement = $(this.el.nativeElement);
 
-    const isTableEmpty =
-      Object.keys(this._dtOptions).length === 0 &&
-      $("tbody tr", tableElement).length === 0;
-
-    if (isTableEmpty) {
+    if (
+      !Object.keys(this._dtOptions).length &&
+      !$("tbody tr", tableElement).length
+    ) {
       throw new Error(`Both the table's data and dtOptions cannot be empty.`);
     }
 
-    if (this._dtOptions?.columns) {
-      for (const column of this._dtOptions.columns) {
-        if (!column.id) {
-          column.id = this.getColumnUniqueId();
-        }
-      }
-    } else {
-      this._dtOptions.columns = this._dtOptions.data?.map(
-        (property, index) => ({
-          id: this.getColumnUniqueId(),
-          title: Object.keys(property)[index],
-          data: Object.keys(property)[index],
-        })
-      );
-    }
+    this._dtOptions.columns =
+      this._dtOptions.columns ?? this.generateColumnsFromData();
 
     if (destroy && $.fn.DataTable.isDataTable(tableElement) && this._instance) {
       this._instance.destroy();
@@ -131,54 +105,54 @@ export class DataTableDirective<T extends object>
 
     const options: ADTSettings = {
       rowCallback: (row, data, index) => {
-        if (this._dtOptions?.columns) {
-          const { columns } = this._dtOptions;
-          this.applyNgPipeTransform(row, columns, data);
-          this.applyNgRefTemplate(row, columns, data);
-        }
-
-        // run user specified row callback if provided.
-        if (this._dtOptions?.rowCallback) {
-          this._dtOptions.rowCallback(row, data, index);
-        }
+        this.applyTransforms(row, this._dtOptions.columns!, data);
+        this._dtOptions.rowCallback?.(row, data, index);
       },
     };
 
     this._instance = tableElement.DataTable({ ...this._dtOptions, ...options });
   }
+
+  private generateColumnsFromData(): ADTColumns[] {
+    return (
+      this._dtOptions.data?.map((property, index) => ({
+        id: this.getColumnUniqueId(),
+        title: Object.keys(property)[index],
+        data: Object.keys(property)[index],
+      })) ?? []
+    );
+  }
+
+  private applyTransforms(
+    row: Node,
+    columns: ADTColumns[],
+    data: object | T[]
+  ): void {
+    this.applyNgPipeTransform(row, columns, data);
+    this.applyNgRefTemplate(row, columns, data);
+  }
+
   private applyNgPipeTransform(
     row: Node,
     columns: ADTColumns[],
     data: object | T[]
   ): void {
-    const colsWithPipe = columns.filter(
-      (col) => col.ngPipeInstance && !col.ngTemplateRef
-    );
-    const visibleColumns = columns.filter((col) => col.visible !== false);
+    columns
+      .filter((col) => col.ngPipeInstance && !col.ngTemplateRef)
+      .forEach((col) => {
+        const index = this.getColumnIndex(columns, col.id);
+        if (index === -1) return;
 
-    colsWithPipe.forEach((col) => {
-      const index =
-        col.id !== undefined
-          ? visibleColumns.findIndex((visibleCol) => visibleCol.id === col.id)
-          : -1;
-      if (index === -1) return;
+        const cell = row.childNodes.item(index);
+        if (!cell) return;
 
-      const cell = row.childNodes.item(index);
-      if (!cell) return;
+        const value = Array.isArray(data)
+          ? data.map((item) => (item as any)[col.data as string])
+          : (data as any)[col.data as string];
 
-      const pipe = col.ngPipeInstance;
-      const pipeArgs = col.ngPipeArgs || [];
-
-      let value: any;
-      if (Array.isArray(data)) {
-        value = data.map((item) => (item as any)[col.data as string]);
-      } else {
-        value = (data as any)[col.data as string];
-      }
-
-      const transformedText = pipe ? pipe.transform(value, ...pipeArgs) : "";
-      cell.textContent = transformedText;
-    });
+        cell.textContent =
+          col.ngPipeInstance?.transform(value, ...(col.ngPipeArgs || [])) ?? "";
+      });
   }
 
   private applyNgRefTemplate(
@@ -186,72 +160,43 @@ export class DataTableDirective<T extends object>
     columns: ADTColumns[],
     data: object | T[]
   ): void {
-    // Filter columns using `ngTemplateRef`
-    const colsWithTemplate = columns.filter(
-      (col) => col.ngTemplateRef && !col.ngPipeInstance
-    );
+    columns
+      .filter((col) => col.ngTemplateRef && !col.ngPipeInstance)
+      .forEach((col) => {
+        const index = this.getColumnIndex(columns, col.id);
+        if (index === -1) return;
 
-    // Cache visible columns for indexing
-    const visibleColumns = columns.filter((col) => col.visible !== false);
-
-    for (const col of colsWithTemplate) {
-      if (col.ngTemplateRef) {
-        const { ref, context } = col.ngTemplateRef;
-
-        // Find the index of the column using `id`
-        const index = visibleColumns.findIndex(
-          (visibleCol) => visibleCol.id === col.id
-        );
-        if (index === -1) {
-          continue;
-        }
-
-        // Get the <td> element which holds data using index
         const cell = row.childNodes.item(index) as HTMLElement;
-        if (!cell) {
-          continue;
-        }
+        if (!cell) return;
 
-        // Reset cell before applying the template
-        while (cell.firstChild) {
-          cell.removeChild(cell.firstChild);
-        }
+        cell.innerHTML = "";
 
-        // Finalize context to be sent to the template
+        const { ref, context } = col.ngTemplateRef!;
         const _context = { ...context, ...context?.userData, adtData: data };
 
-        // Ensure ref and _context are defined before creating embedded view
-        if (!ref || !_context) {
-          continue;
+        if (ref && _context) {
+          try {
+            const instance = this.vcr.createEmbeddedView(ref, _context);
+            instance.detectChanges();
+            instance.rootNodes.forEach((node) =>
+              this.renderer.appendChild(cell, node)
+            );
+          } catch (error) {
+            console.error("Error creating embedded view", error);
+          }
         }
+      });
+  }
 
-        try {
-          // Create embedded view and append to the cell
-          const instance = this.vcr.createEmbeddedView(ref, _context);
-          instance.detectChanges();
-
-          instance.rootNodes.forEach((node) => {
-            this.renderer.appendChild(cell, node);
-          });
-        } catch (error) {
-          console.error("Error creating embedded view", error);
-        }
-      }
-    }
+  private getColumnIndex(columns: ADTColumns[], id?: string): number {
+    return id !== undefined ? columns.findIndex((col) => col.id === id) : -1;
   }
 
   private getColumnUniqueId(): string {
     const characters =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    const charactersLength = characters.length;
-    let result = "";
-
-    for (let i = 0; i < 6; i++) {
-      const randomIndex =
-        crypto.getRandomValues(new Uint8Array(1))[0] % charactersLength;
-      result += characters.charAt(randomIndex);
-    }
-
-    return result;
+    return Array.from(crypto.getRandomValues(new Uint8Array(6)))
+      .map((byte) => characters[byte % characters.length])
+      .join("");
   }
 }

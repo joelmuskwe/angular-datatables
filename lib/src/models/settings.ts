@@ -1,16 +1,8 @@
-import { PipeTransform, TemplateRef } from '@angular/core';
-import { Config, ConfigColumns } from 'datatables.net';
+import { PipeTransform, TemplateRef } from "@angular/core";
+import { Config, ConfigColumns } from "datatables.net";
 
-export interface ADTSettings extends Omit<Config, 'data'> {
+export interface ADTSettings extends Omit<Config, "data"> {
   columns?: ADTColumns[];
-  buttons?: any[];
-  colReorder?: any;
-  responsive?: boolean;
-  select?: boolean;
-    /**
-   * The name of the user
-   */
-  fixedColumns?: any;
 }
 
 export interface ADTColumns extends ConfigColumns {
