@@ -3,6 +3,7 @@ import { Config, ConfigColumns } from "datatables.net";
 
 export interface ADTSettings extends Omit<Config, "data"> {
   columns?: ADTColumns[];
+  fixedColumns?: boolean | any;
 }
 
 export interface ADTColumns extends ConfigColumns {

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ADTSettings } from "angular-datatables";
+import 'datatables.net-fixedcolumns';
 
 @Component({
   selector: 'app-fixed-columns-extension',

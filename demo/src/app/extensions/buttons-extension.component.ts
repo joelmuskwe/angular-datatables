@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ADTSettings } from 'angular-datatables';
+import 'datatables.net-buttons';
 
 @Component({
   selector: 'app-buttons-extension',
