@@ -42,7 +42,9 @@ export class ButtonsExtensionComponent implements OnInit {
           extend: 'csv',
           text: 'CSV export',
           fieldSeparator: ';',
-          exportOptions: [1, 2, 3]
+          exportOptions: {
+            columns: [1, 2, 3]
+          }
         },
         'excel',
         {
