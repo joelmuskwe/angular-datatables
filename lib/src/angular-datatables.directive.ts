@@ -60,6 +60,7 @@ export class DataTableDirective<T extends object>
         ...this.dtOptions,
         data: data.currentValue,
       };
+
       // Display the table, checking if it's already initialized as a DataTable
       this.displayTable($.fn.DataTable.isDataTable($(this.el.nativeElement)));
     } else if (dtOptions) {
@@ -68,6 +69,7 @@ export class DataTableDirective<T extends object>
         ...this._dtOptions,
         ...this.dtOptions,
       };
+
       // Display the table, passing a boolean that indicates if this is not the first change
       this.displayTable(!dtOptions.firstChange);
     }
@@ -146,7 +148,18 @@ export class DataTableDirective<T extends object>
       },
     };
 
-    this._instance = tableElement.DataTable({ ...this._dtOptions, ...options });
+    const removeEmptyColumns = (settings: ADTSettings): ADTSettings => {
+      const { columns, ...rest } = settings;
+      return {
+        ...rest,
+        ...(columns && columns.length > 0 && { columns }),
+      };
+    };
+
+    this._instance = tableElement.DataTable({
+      ...removeEmptyColumns(this._dtOptions),
+      ...removeEmptyColumns(options),
+    });
   }
 
   /**
@@ -197,12 +210,14 @@ export class DataTableDirective<T extends object>
     data: object | T[]
   ): void {
     columns
-      .filter((col) => col.ngPipeInstance && !col.ngTemplateRef)
+      ?.filter((col) => col.ngPipeInstance && !col.ngTemplateRef)
       .forEach((col) => {
         const index = this.getColumnIndex(columns, col.id);
+
         if (index === -1) return;
 
         const cell = row.childNodes.item(index);
+
         if (!cell) return;
 
         const value = Array.isArray(data)
@@ -227,7 +242,7 @@ export class DataTableDirective<T extends object>
     data: object | T[]
   ): void {
     columns
-      .filter((col) => col.ngTemplateRef && !col.ngPipeInstance)
+      ?.filter((col) => col.ngTemplateRef && !col.ngPipeInstance)
       .forEach((col) => {
         const index = this.getColumnIndex(columns, col.id);
         if (index === -1) return;

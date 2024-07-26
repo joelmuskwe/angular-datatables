@@ -27,6 +27,7 @@ export class CustomRangeSearchComponent implements OnDestroy, OnInit {
     $.fn["dataTable"].ext.search.push(
       (settings: Config, data: any, dataIndex: number) => {
         const id = parseFloat(data[0]) || 0; // use data for the id column
+
         if (
           (isNaN(this.min) && isNaN(this.max)) ||
           (isNaN(this.min) && id <= this.max) ||
@@ -66,7 +67,7 @@ export class CustomRangeSearchComponent implements OnDestroy, OnInit {
   }
 
   filterById(): boolean {
-    this.datatableElement.draw;
+    this.datatableElement.draw();
     return false;
   }
 }
